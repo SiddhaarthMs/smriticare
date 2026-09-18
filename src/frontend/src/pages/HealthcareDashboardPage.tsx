@@ -27,6 +27,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
 import { useI18n } from "@/hooks/use-i18n";
 import { DEMO_HEALTHCARE_WORKER, DEMO_NE_STATES } from "@/lib/demo-data";
+import { chartColor } from "@/lib/utils";
 
 interface StateMetric {
   id: string;
@@ -124,14 +125,14 @@ const WEEKLY_ACTIVE = [
 ];
 
 const CHART_COLORS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
+  chartColor(1),
+  chartColor(2),
+  chartColor(3),
+  chartColor(4),
+  chartColor(5),
+  chartColor(1),
+  chartColor(2),
+  chartColor(3),
 ];
 
 export function HealthcareDashboardPage() {
@@ -283,12 +284,12 @@ export function HealthcareDashboardPage() {
                   <linearGradient id="activeFill" x1="0" y1="0" x2="0" y2="1">
                     <stop
                       offset="0%"
-                      stopColor="var(--chart-1)"
+                      stopColor={chartColor(1)}
                       stopOpacity={0.4}
                     />
                     <stop
                       offset="100%"
-                      stopColor="var(--chart-1)"
+                      stopColor={chartColor(1)}
                       stopOpacity={0}
                     />
                   </linearGradient>
@@ -305,7 +306,7 @@ export function HealthcareDashboardPage() {
                   type="monotone"
                   dataKey="active"
                   name="Active users"
-                  stroke="var(--chart-1)"
+                  stroke={chartColor(1)}
                   strokeWidth={3}
                   fill="url(#activeFill)"
                 />

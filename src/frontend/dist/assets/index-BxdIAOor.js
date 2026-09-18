@@ -38362,6 +38362,9 @@ const twMerge = /* @__PURE__ */ createTailwindMerge(getDefaultConfig);
 function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
+function chartColor(index2) {
+  return `oklch(var(--chart-${index2}))`;
+}
 const useOfflineStore = create((set) => ({
   status: "connected",
   pendingSync: 0,
@@ -66798,14 +66801,7 @@ function AIJourneyPage() {
             width: 30
           }
         ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Bar,
-          {
-            dataKey: "games",
-            fill: "var(--chart-1)",
-            radius: [8, 8, 0, 0]
-          }
-        )
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Bar, { dataKey: "games", fill: chartColor(1), radius: [8, 8, 0, 0] })
       ] }) }) })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "flex flex-col gap-4", children: [
@@ -67261,6 +67257,211 @@ function Button({
     }
   );
 }
+const THEMES = { light: "", dark: ".dark" };
+const ChartContext = reactExports.createContext(null);
+function useChart() {
+  const context = reactExports.useContext(ChartContext);
+  if (!context) {
+    throw new Error("useChart must be used within a <ChartContainer />");
+  }
+  return context;
+}
+function ChartContainer({
+  id,
+  className,
+  children,
+  config: config2,
+  ...props
+}) {
+  const uniqueId3 = reactExports.useId();
+  const chartId = `chart-${id || uniqueId3.replace(/:/g, "")}`;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(ChartContext.Provider, { value: { config: config2 }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      "data-slot": "chart",
+      "data-chart": chartId,
+      className: cn(
+        "[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border flex h-full w-full justify-center text-xs [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
+        className
+      ),
+      ...props,
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ChartStyle, { id: chartId, config: config2 }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ResponsiveContainer, { width: "100%", height: "100%", children })
+      ]
+    }
+  ) });
+}
+const ChartStyle = ({ id, config: config2 }) => {
+  const colorConfig = Object.entries(config2).filter(
+    ([, config22]) => config22.theme || config22.color
+  );
+  if (!colorConfig.length) {
+    return null;
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "style",
+    {
+      dangerouslySetInnerHTML: {
+        __html: Object.entries(THEMES).map(
+          ([theme, prefix2]) => `
+${prefix2} [data-chart=${id}] {
+${colorConfig.map(([key, itemConfig]) => {
+            var _a2;
+            const color2 = ((_a2 = itemConfig.theme) == null ? void 0 : _a2[theme]) || itemConfig.color;
+            return color2 ? `  --color-${key}: ${color2};` : null;
+          }).join("\n")}
+}
+`
+        ).join("\n")
+      }
+    }
+  );
+};
+const ChartTooltip = Tooltip;
+function ChartTooltipContent({
+  active,
+  payload,
+  className,
+  indicator = "dot",
+  hideLabel = false,
+  hideIndicator = false,
+  label,
+  labelFormatter,
+  labelClassName,
+  formatter,
+  color: color2,
+  nameKey,
+  labelKey
+}) {
+  const { config: config2 } = useChart();
+  const tooltipLabel = reactExports.useMemo(() => {
+    var _a2;
+    if (hideLabel || !(payload == null ? void 0 : payload.length)) {
+      return null;
+    }
+    const [item] = payload;
+    const key = `${labelKey || (item == null ? void 0 : item.dataKey) || (item == null ? void 0 : item.name) || "value"}`;
+    const itemConfig = getPayloadConfigFromPayload(config2, item, key);
+    const value = !labelKey && typeof label === "string" ? ((_a2 = config2[label]) == null ? void 0 : _a2.label) || label : itemConfig == null ? void 0 : itemConfig.label;
+    if (labelFormatter) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cn("font-medium", labelClassName), children: labelFormatter(value, payload) });
+    }
+    if (!value) {
+      return null;
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cn("font-medium", labelClassName), children: value });
+  }, [
+    label,
+    labelFormatter,
+    payload,
+    hideLabel,
+    labelClassName,
+    config2,
+    labelKey
+  ]);
+  if (!active || !(payload == null ? void 0 : payload.length)) {
+    return null;
+  }
+  const nestLabel = payload.length === 1 && indicator !== "dot";
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      className: cn(
+        "border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl",
+        className
+      ),
+      children: [
+        !nestLabel ? tooltipLabel : null,
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid gap-1.5", children: payload.map((item, index2) => {
+          const key = `${nameKey || item.name || item.dataKey || "value"}`;
+          const itemConfig = getPayloadConfigFromPayload(config2, item, key);
+          const indicatorColor = color2 || item.payload.fill || item.color;
+          return /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: cn(
+                "[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5",
+                indicator === "dot" && "items-center"
+              ),
+              children: formatter && (item == null ? void 0 : item.value) !== void 0 && item.name ? formatter(item.value, item.name, item, index2, item.payload) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                (itemConfig == null ? void 0 : itemConfig.icon) ? /* @__PURE__ */ jsxRuntimeExports.jsx(itemConfig.icon, {}) : !hideIndicator && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "div",
+                  {
+                    className: cn(
+                      "shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)",
+                      {
+                        "h-2.5 w-2.5": indicator === "dot",
+                        "w-1": indicator === "line",
+                        "w-0 border-[1.5px] border-dashed bg-transparent": indicator === "dashed",
+                        "my-0.5": nestLabel && indicator === "dashed"
+                      }
+                    ),
+                    style: {
+                      "--color-bg": indicatorColor,
+                      "--color-border": indicatorColor
+                    }
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "div",
+                  {
+                    className: cn(
+                      "flex flex-1 justify-between leading-none",
+                      nestLabel ? "items-end" : "items-center"
+                    ),
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-1.5", children: [
+                        nestLabel ? tooltipLabel : null,
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-muted-foreground", children: (itemConfig == null ? void 0 : itemConfig.label) || item.name })
+                      ] }),
+                      item.value && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-foreground font-mono font-medium tabular-nums", children: item.value.toLocaleString() })
+                    ]
+                  }
+                )
+              ] })
+            },
+            item.dataKey
+          );
+        }) })
+      ]
+    }
+  );
+}
+function ChartEmptyState({
+  message,
+  className,
+  ...props
+}) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      "data-slot": "chart-empty-state",
+      className: cn(
+        "flex h-full w-full flex-col items-center justify-center gap-2 rounded-2xl bg-muted/40 p-6 text-center",
+        className
+      ),
+      ...props,
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-3xl", "aria-hidden": "true", children: "📊" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "max-w-xs text-sm text-muted-foreground", children: message })
+      ]
+    }
+  );
+}
+function getPayloadConfigFromPayload(config2, payload, key) {
+  if (typeof payload !== "object" || payload === null) {
+    return void 0;
+  }
+  const payloadPayload = "payload" in payload && typeof payload.payload === "object" && payload.payload !== null ? payload.payload : void 0;
+  let configLabelKey = key;
+  if (key in payload && typeof payload[key] === "string") {
+    configLabelKey = payload[key];
+  } else if (payloadPayload && key in payloadPayload && typeof payloadPayload[key] === "string") {
+    configLabelKey = payloadPayload[key];
+  }
+  return configLabelKey in config2 ? config2[configLabelKey] : config2[key];
+}
 const MOOD_EMOJI = {
   happy: "😊",
   calm: "😌",
@@ -67276,6 +67477,15 @@ const MOOD_SCORE = {
   tired: 1
 };
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const SKELETON_BARS = [
+  { id: "skeleton-bar-1", height: 45 },
+  { id: "skeleton-bar-2", height: 70 },
+  { id: "skeleton-bar-3", height: 55 },
+  { id: "skeleton-bar-4", height: 85 },
+  { id: "skeleton-bar-5", height: 60 },
+  { id: "skeleton-bar-6", height: 75 },
+  { id: "skeleton-bar-7", height: 50 }
+];
 const DEMO_ENGAGEMENT = [62, 65, 68, 66, 71, 73, 74];
 const DEMO_MOOD = [3, 4, 4, 3, 4, 5, 4];
 const NAV_SECTIONS = [
@@ -67374,6 +67584,148 @@ function SectionHeading({
     subtitle ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-base text-muted-foreground", children: subtitle }) : null
   ] });
 }
+function ChartCard({
+  title,
+  description,
+  height = 288,
+  loading = false,
+  empty = false,
+  emptyMessage = "No data available yet.",
+  controls,
+  children,
+  ocid
+}) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "div",
+    {
+      "data-ocid": ocid,
+      className: "flex flex-col gap-4 rounded-3xl bg-card p-6 shadow-subtle",
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "font-display text-xl font-bold", children: title }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-1 text-sm text-muted-foreground", children: description })
+          ] }),
+          controls ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex shrink-0 flex-wrap items-center gap-2", children: controls }) : null
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { height }, className: "w-full", children: loading ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            "data-ocid": `${ocid}.loading_state`,
+            "aria-busy": "true",
+            "aria-live": "polite",
+            className: "flex h-full w-full flex-col justify-end gap-2 rounded-2xl bg-muted/40 p-4",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "sr-only", children: "Preparing chart data…" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex h-full items-end gap-2", children: SKELETON_BARS.map((bar) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "div",
+                {
+                  className: "flex-1 animate-pulse rounded-t-lg bg-muted",
+                  style: { height: `${bar.height}%` }
+                },
+                bar.id
+              )) })
+            ]
+          }
+        ) : empty ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+          ChartEmptyState,
+          {
+            "data-ocid": `${ocid}.empty_state`,
+            message: emptyMessage
+          }
+        ) : children })
+      ]
+    }
+  );
+}
+function ToggleGroup({
+  options,
+  value,
+  onChange,
+  label,
+  ocid
+}) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "fieldset",
+    {
+      "aria-label": label,
+      className: "inline-flex items-center gap-1 rounded-full bg-muted p-1",
+      children: options.map((option) => {
+        const active = option.value === value;
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "button",
+          {
+            type: "button",
+            "data-ocid": `${ocid}.${option.value}`,
+            "aria-pressed": active,
+            onClick: () => onChange(option.value),
+            className: cn(
+              "min-h-9 rounded-full px-3 text-sm font-semibold transition-colors focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
+              active ? "bg-card text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+            ),
+            children: option.label
+          },
+          option.value
+        );
+      })
+    }
+  );
+}
+const ACTIVITY_CONFIG = {
+  games: { label: "Games played", color: chartColor(1) }
+};
+const ENGAGEMENT_CONFIG = {
+  engagement: { label: "Engagement %", color: chartColor(1) },
+  accuracy: { label: "Accuracy %", color: chartColor(2) }
+};
+const MOOD_CONFIG = {
+  mood: { label: "Mood score", color: chartColor(2) }
+};
+const ADHERENCE_CONFIG = {
+  adherence: { label: "Adherence %", color: chartColor(3) }
+};
+function SeriesLegend({
+  items,
+  hidden,
+  onToggle,
+  ocid
+}) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      "data-ocid": ocid,
+      className: "flex flex-wrap items-center justify-center gap-2 pt-3",
+      children: items.map((item) => {
+        const isHidden2 = Boolean(hidden[item.key]);
+        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            type: "button",
+            "data-ocid": `${ocid}.${item.key}`,
+            "aria-pressed": !isHidden2,
+            onClick: () => onToggle(item.key),
+            className: cn(
+              "inline-flex min-h-9 items-center gap-2 rounded-full border px-3 text-sm font-semibold transition-colors focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
+              isHidden2 ? "border-border text-muted-foreground line-through opacity-60" : "border-transparent bg-muted text-foreground"
+            ),
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "span",
+                {
+                  className: "size-2.5 shrink-0 rounded-[3px]",
+                  style: { backgroundColor: item.color },
+                  "aria-hidden": "true"
+                }
+              ),
+              item.label
+            ]
+          },
+          item.key
+        );
+      })
+    }
+  );
+}
 function CaregiverDashboardPage() {
   const { t: t2 } = useI18n();
   const gameResults = useAppStore((s2) => s2.gameResults);
@@ -67384,6 +67736,9 @@ function CaregiverDashboardPage() {
   const toggleReminder = useAppStore((s2) => s2.toggleReminder);
   const { recommendations, weeklyActivity, totalGames, streak } = useAdaptive();
   const [confirmation, setConfirmation] = reactExports.useState(null);
+  const [activityView, setActivityView] = reactExports.useState("weekly");
+  const [engagementView, setEngagementView] = reactExports.useState("engagement");
+  const [hiddenSeries, setHiddenSeries] = reactExports.useState({});
   reactExports.useEffect(() => {
     if (!confirmation) return;
     const id = window.setTimeout(() => setConfirmation(null), 4e3);
@@ -67399,27 +67754,58 @@ function CaregiverDashboardPage() {
     reminders.filter((r2) => r2.enabled).length / reminders.length * 100
   ) : 92;
   const mood = currentMood ?? "happy";
-  const activityData = weeklyActivity.map((value, i) => ({
-    day: DAYS[i],
-    games: value
-  }));
-  const engagementData = DEMO_ENGAGEMENT.map((base, i) => {
-    const dayResults = gameResults.filter(
-      (r2) => new Date(r2.timestamp).getDay() === i
-    );
-    const value = dayResults.length ? Math.round(average(dayResults.map((r2) => r2.accuracy))) : base;
-    return { day: DAYS[i], engagement: value };
-  });
-  const moodData = DEMO_MOOD.map((base, i) => {
-    const entry = moodEntries.find((m2) => new Date(m2.date).getDay() === i);
-    const value = entry ? MOOD_SCORE[entry.mood] : base;
-    return { day: DAYS[i], mood: value };
-  });
+  const activityData = reactExports.useMemo(() => {
+    if (activityView === "weekly") {
+      return weeklyActivity.map((value, i) => ({
+        label: DAYS[i],
+        games: value
+      }));
+    }
+    const weeks = ["Week 1", "Week 2", "Week 3", "Week 4"];
+    return weeks.map((label, i) => {
+      const slice = weeklyActivity.slice(i * 2, i * 2 + 2);
+      return { label, games: slice.reduce((a2, b2) => a2 + b2, 0) };
+    });
+  }, [activityView, weeklyActivity]);
+  const engagementData = reactExports.useMemo(
+    () => DEMO_ENGAGEMENT.map((base, i) => {
+      const dayResults = gameResults.filter(
+        (r2) => new Date(r2.timestamp).getDay() === i
+      );
+      const accuracy = dayResults.length ? Math.round(average(dayResults.map((r2) => r2.accuracy))) : base;
+      return {
+        label: DAYS[i],
+        engagement: base,
+        accuracy
+      };
+    }),
+    [gameResults]
+  );
+  const moodData = reactExports.useMemo(
+    () => DEMO_MOOD.map((base, i) => {
+      const entry = moodEntries.find((m2) => new Date(m2.date).getDay() === i);
+      const value = entry ? MOOD_SCORE[entry.mood] : base;
+      return { label: DAYS[i], mood: value };
+    }),
+    [moodEntries]
+  );
+  const adherenceData = reactExports.useMemo(
+    () => DEMO_CAREGIVER_PATIENTS.map((patient) => ({
+      label: patient.name.split(" ")[0],
+      adherence: patient.adherence
+    })),
+    []
+  );
   const routine = [...DEMO_REMINDERS].sort(
     (a2, b2) => a2.time.localeCompare(b2.time)
   );
   const recentGames = [...gameResults].sort((a2, b2) => b2.timestamp - a2.timestamp).slice(0, 6);
   const showConfirmation = (message) => setConfirmation(message);
+  const toggleSeries = (key) => setHiddenSeries((prev) => ({ ...prev, [key]: !prev[key] }));
+  const activityEmpty = activityData.every((d2) => d2.games === 0);
+  const engagementEmpty = engagementData.length === 0;
+  const moodEmpty = moodData.length === 0;
+  const adherenceEmpty = adherenceData.length === 0;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-10 animate-fade-in-up", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       PageHeader,
@@ -67624,7 +68010,71 @@ function CaregiverDashboardPage() {
               ]
             },
             patient.id
-          )) })
+          )) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            ChartCard,
+            {
+              ocid: "caregiver.chart.adherence",
+              title: "Patient adherence comparison",
+              description: "Reminder adherence across the people in your care this week.",
+              height: 260,
+              empty: adherenceEmpty,
+              emptyMessage: "No patient adherence data to compare yet.",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(ChartContainer, { config: ADHERENCE_CONFIG, className: "h-full w-full", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(BarChart, { data: adherenceData, margin: { top: 8, right: 8 }, children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(CartesianGrid, { vertical: false, strokeDasharray: "3 3" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(XAxis, { dataKey: "label", tickLine: false, axisLine: false }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    YAxis,
+                    {
+                      domain: [0, 100],
+                      tickLine: false,
+                      axisLine: false,
+                      width: 34
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    ChartTooltip,
+                    {
+                      cursor: false,
+                      content: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        ChartTooltipContent,
+                        {
+                          indicator: "dot",
+                          formatter: (value) => `${value}% adherence`
+                        }
+                      )
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Bar,
+                    {
+                      dataKey: "adherence",
+                      fill: chartColor(3),
+                      radius: [8, 8, 0, 0],
+                      animationDuration: 600,
+                      hide: Boolean(hiddenSeries.adherence)
+                    }
+                  )
+                ] }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  SeriesLegend,
+                  {
+                    ocid: "caregiver.chart.adherence.legend",
+                    hidden: hiddenSeries,
+                    onToggle: toggleSeries,
+                    items: [
+                      {
+                        key: "adherence",
+                        label: "Adherence %",
+                        color: chartColor(3)
+                      }
+                    ]
+                  }
+                )
+              ]
+            }
+          )
         ]
       }
     ),
@@ -67643,28 +68093,79 @@ function CaregiverDashboardPage() {
               subtitle: "Games completed per day over the last 7 days."
             }
           ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rounded-3xl bg-card p-6 shadow-subtle", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-64 w-full", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ResponsiveContainer, { width: "100%", height: "100%", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(BarChart, { data: activityData, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(XAxis, { dataKey: "day", tickLine: false, axisLine: false }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              YAxis,
-              {
-                allowDecimals: false,
-                tickLine: false,
-                axisLine: false,
-                width: 30
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, {}),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Bar,
-              {
-                dataKey: "games",
-                name: "Games",
-                fill: "var(--chart-1)",
-                radius: [8, 8, 0, 0]
-              }
-            )
-          ] }) }) }) })
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            ChartCard,
+            {
+              ocid: "caregiver.chart.activity",
+              title: "Games completed",
+              description: "How many cognitive games Asha finished each day.",
+              height: 288,
+              empty: activityEmpty,
+              emptyMessage: "No games completed in this period yet. Activity will appear here once Asha plays.",
+              controls: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                ToggleGroup,
+                {
+                  label: "Activity range",
+                  ocid: "caregiver.chart.activity.view",
+                  value: activityView,
+                  onChange: setActivityView,
+                  options: [
+                    { value: "weekly", label: "Weekly" },
+                    { value: "monthly", label: "Monthly" }
+                  ]
+                }
+              ),
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(ChartContainer, { config: ACTIVITY_CONFIG, className: "h-full w-full", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(BarChart, { data: activityData, margin: { top: 8, right: 8 }, children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(CartesianGrid, { vertical: false, strokeDasharray: "3 3" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(XAxis, { dataKey: "label", tickLine: false, axisLine: false }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    YAxis,
+                    {
+                      allowDecimals: false,
+                      tickLine: false,
+                      axisLine: false,
+                      width: 30
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    ChartTooltip,
+                    {
+                      cursor: false,
+                      content: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        ChartTooltipContent,
+                        {
+                          indicator: "dot",
+                          formatter: (value) => `${value} games`
+                        }
+                      )
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    Bar,
+                    {
+                      dataKey: "games",
+                      fill: chartColor(1),
+                      radius: [8, 8, 0, 0],
+                      animationDuration: 600,
+                      hide: Boolean(hiddenSeries.games)
+                    }
+                  )
+                ] }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  SeriesLegend,
+                  {
+                    ocid: "caregiver.chart.activity.legend",
+                    hidden: hiddenSeries,
+                    onToggle: toggleSeries,
+                    items: [
+                      { key: "games", label: "Games played", color: chartColor(1) }
+                    ]
+                  }
+                )
+              ]
+            }
+          )
         ]
       }
     ),
@@ -67956,89 +68457,221 @@ function CaregiverDashboardPage() {
             }
           ),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-4 lg:grid-cols-2", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-3xl bg-card p-6 shadow-subtle", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "font-display text-xl font-bold", children: "Engagement trend" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-4 h-56 w-full", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ResponsiveContainer, { width: "100%", height: "100%", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(AreaChart, { data: engagementData, children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("defs", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                  "linearGradient",
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              ChartCard,
+              {
+                ocid: "caregiver.chart.engagement",
+                title: "Engagement trend",
+                description: "Cognitive engagement and game accuracy across the week.",
+                height: 256,
+                empty: engagementEmpty,
+                emptyMessage: "No engagement data recorded for this week yet.",
+                controls: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  ToggleGroup,
                   {
-                    id: "engagementFill",
-                    x1: "0",
-                    y1: "0",
-                    x2: "0",
-                    y2: "1",
-                    children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        "stop",
-                        {
-                          offset: "0%",
-                          stopColor: "var(--chart-1)",
-                          stopOpacity: 0.4
-                        }
-                      ),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        "stop",
-                        {
-                          offset: "100%",
-                          stopColor: "var(--chart-1)",
-                          stopOpacity: 0
-                        }
-                      )
+                    label: "Engagement metric",
+                    ocid: "caregiver.chart.engagement.view",
+                    value: engagementView,
+                    onChange: setEngagementView,
+                    options: [
+                      { value: "engagement", label: "Engagement" },
+                      { value: "accuracy", label: "Accuracy" }
                     ]
                   }
-                ) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(XAxis, { dataKey: "day", tickLine: false, axisLine: false }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  YAxis,
-                  {
-                    domain: [0, 100],
-                    tickLine: false,
-                    axisLine: false,
-                    width: 30
-                  }
                 ),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, {}),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  Area,
-                  {
-                    type: "monotone",
-                    dataKey: "engagement",
-                    name: "Engagement %",
-                    stroke: "var(--chart-1)",
-                    strokeWidth: 3,
-                    fill: "url(#engagementFill)"
-                  }
-                )
-              ] }) }) })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-3xl bg-card p-6 shadow-subtle", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "font-display text-xl font-bold", children: "Mood trend" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-4 h-56 w-full", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ResponsiveContainer, { width: "100%", height: "100%", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(LineChart, { data: moodData, children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(XAxis, { dataKey: "day", tickLine: false, axisLine: false }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  YAxis,
-                  {
-                    domain: [1, 5],
-                    ticks: [1, 2, 3, 4, 5],
-                    tickLine: false,
-                    axisLine: false,
-                    width: 30
-                  }
-                ),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Tooltip, {}),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  Line,
-                  {
-                    type: "monotone",
-                    dataKey: "mood",
-                    name: "Mood",
-                    stroke: "var(--chart-2)",
-                    strokeWidth: 3,
-                    dot: { r: 4 }
-                  }
-                )
-              ] }) }) })
-            ] })
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    ChartContainer,
+                    {
+                      config: ENGAGEMENT_CONFIG,
+                      className: "h-full w-full",
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsxs(AreaChart, { data: engagementData, margin: { top: 8, right: 8 }, children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs("defs", { children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                            "linearGradient",
+                            {
+                              id: "engagementFill",
+                              x1: "0",
+                              y1: "0",
+                              x2: "0",
+                              y2: "1",
+                              children: [
+                                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                                  "stop",
+                                  {
+                                    offset: "0%",
+                                    stopColor: chartColor(1),
+                                    stopOpacity: 0.4
+                                  }
+                                ),
+                                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                                  "stop",
+                                  {
+                                    offset: "100%",
+                                    stopColor: chartColor(1),
+                                    stopOpacity: 0
+                                  }
+                                )
+                              ]
+                            }
+                          ),
+                          /* @__PURE__ */ jsxRuntimeExports.jsxs("linearGradient", { id: "accuracyFill", x1: "0", y1: "0", x2: "0", y2: "1", children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              "stop",
+                              {
+                                offset: "0%",
+                                stopColor: chartColor(2),
+                                stopOpacity: 0.4
+                              }
+                            ),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              "stop",
+                              {
+                                offset: "100%",
+                                stopColor: chartColor(2),
+                                stopOpacity: 0
+                              }
+                            )
+                          ] })
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(CartesianGrid, { vertical: false, strokeDasharray: "3 3" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(XAxis, { dataKey: "label", tickLine: false, axisLine: false }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          YAxis,
+                          {
+                            domain: [0, 100],
+                            tickLine: false,
+                            axisLine: false,
+                            width: 34
+                          }
+                        ),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          ChartTooltip,
+                          {
+                            cursor: false,
+                            content: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                              ChartTooltipContent,
+                              {
+                                indicator: "line",
+                                formatter: (value) => `${value}%`
+                              }
+                            )
+                          }
+                        ),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          Area,
+                          {
+                            type: "monotone",
+                            dataKey: "engagement",
+                            stroke: chartColor(1),
+                            strokeWidth: 3,
+                            fill: "url(#engagementFill)",
+                            animationDuration: 600,
+                            hide: engagementView !== "engagement" || Boolean(hiddenSeries.engagement)
+                          }
+                        ),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          Area,
+                          {
+                            type: "monotone",
+                            dataKey: "accuracy",
+                            stroke: chartColor(2),
+                            strokeWidth: 3,
+                            fill: "url(#accuracyFill)",
+                            animationDuration: 600,
+                            hide: engagementView !== "accuracy" || Boolean(hiddenSeries.accuracy)
+                          }
+                        )
+                      ] })
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    SeriesLegend,
+                    {
+                      ocid: "caregiver.chart.engagement.legend",
+                      hidden: hiddenSeries,
+                      onToggle: toggleSeries,
+                      items: [
+                        {
+                          key: "engagement",
+                          label: "Engagement %",
+                          color: chartColor(1)
+                        },
+                        {
+                          key: "accuracy",
+                          label: "Accuracy %",
+                          color: chartColor(2)
+                        }
+                      ]
+                    }
+                  )
+                ]
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              ChartCard,
+              {
+                ocid: "caregiver.chart.mood",
+                title: "Mood trend",
+                description: "Asha's daily mood score from 1 (tired) to 5 (happy).",
+                height: 256,
+                empty: moodEmpty,
+                emptyMessage: "No mood check-ins recorded yet.",
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(ChartContainer, { config: MOOD_CONFIG, className: "h-full w-full", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(LineChart, { data: moodData, margin: { top: 8, right: 8 }, children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(CartesianGrid, { vertical: false, strokeDasharray: "3 3" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(XAxis, { dataKey: "label", tickLine: false, axisLine: false }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      YAxis,
+                      {
+                        domain: [1, 5],
+                        ticks: [1, 2, 3, 4, 5],
+                        tickLine: false,
+                        axisLine: false,
+                        width: 30
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      ChartTooltip,
+                      {
+                        cursor: false,
+                        content: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          ChartTooltipContent,
+                          {
+                            indicator: "line",
+                            formatter: (value) => `${value} / 5`
+                          }
+                        )
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      Line,
+                      {
+                        type: "monotone",
+                        dataKey: "mood",
+                        stroke: chartColor(2),
+                        strokeWidth: 3,
+                        dot: { r: 4 },
+                        activeDot: { r: 6 },
+                        animationDuration: 600,
+                        hide: Boolean(hiddenSeries.mood)
+                      }
+                    )
+                  ] }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    SeriesLegend,
+                    {
+                      ocid: "caregiver.chart.mood.legend",
+                      hidden: hiddenSeries,
+                      onToggle: toggleSeries,
+                      items: [
+                        { key: "mood", label: "Mood score", color: chartColor(2) }
+                      ]
+                    }
+                  )
+                ]
+              }
+            )
           ] })
         ]
       }
@@ -70211,14 +70844,14 @@ const WEEKLY_ACTIVE = [
   { week: "W7", active: 3290 }
 ];
 const CHART_COLORS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)"
+  chartColor(1),
+  chartColor(2),
+  chartColor(3),
+  chartColor(4),
+  chartColor(5),
+  chartColor(1),
+  chartColor(2),
+  chartColor(3)
 ];
 function HealthcareDashboardPage() {
   const { t: t2 } = useI18n();
@@ -70373,7 +71006,7 @@ function HealthcareDashboardPage() {
               "stop",
               {
                 offset: "0%",
-                stopColor: "var(--chart-1)",
+                stopColor: chartColor(1),
                 stopOpacity: 0.4
               }
             ),
@@ -70381,7 +71014,7 @@ function HealthcareDashboardPage() {
               "stop",
               {
                 offset: "100%",
-                stopColor: "var(--chart-1)",
+                stopColor: chartColor(1),
                 stopOpacity: 0
               }
             )
@@ -70403,7 +71036,7 @@ function HealthcareDashboardPage() {
               type: "monotone",
               dataKey: "active",
               name: "Active users",
-              stroke: "var(--chart-1)",
+              stroke: chartColor(1),
               strokeWidth: 3,
               fill: "url(#activeFill)"
             }

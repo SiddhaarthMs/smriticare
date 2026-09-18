@@ -23,7 +23,7 @@ import { useI18n } from "@/hooks/use-i18n";
 import { buildSkillProfile } from "@/lib/adaptive-engine";
 import { useAppStore } from "@/lib/store";
 import type { SkillArea } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { chartColor, cn } from "@/lib/utils";
 
 const AREAS: SkillArea[] = [
   "Memory",
@@ -191,11 +191,7 @@ export function AIJourneyPage() {
                 axisLine={false}
                 width={30}
               />
-              <Bar
-                dataKey="games"
-                fill="var(--chart-1)"
-                radius={[8, 8, 0, 0]}
-              />
+              <Bar dataKey="games" fill={chartColor(1)} radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

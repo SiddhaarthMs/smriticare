@@ -1,19 +1,20 @@
 {
-  "overview": "SmritiCare is an elderly-friendly cognitive care companion for Northeast India with multilingual voice interaction across regional languages.",
+  "overview": "SmritiCare is a care companion app for elderly users and their caregivers, with a caregiver dashboard that visualizes patient activity, engagement, and mood.",
   "features": [
-    "Multilingual interface and voice assistant across 12 Northeast Indian languages",
-    "Elderly-friendly brain gym games and cognitive activities",
-    "Daily routine and reminder management",
-    "Voice interaction with speech recognition and synthesis",
-    "Caregiver and healthcare dashboards"
+    "Interactive activity, engagement, and mood charts on the caregiver dashboard",
+    "Hover tooltips with exact values and dates",
+    "Legends that toggle data series on and off",
+    "Weekly and monthly view switching",
+    "Responsive charts that adapt to any screen size",
+    "Clear loading and empty states"
   ],
   "category": "healthcare",
   "tags": [
-    "healthcare",
-    "elderly-care",
-    "multilingual",
-    "northeast-india",
-    "cognitive-care"
+    "caregiving",
+    "eldercare",
+    "dashboard",
+    "data-visualization",
+    "charts"
   ],
-  "last_updated": "2026-09-16T05:40:15.347Z"
+  "last_updated": "2026-09-18T17:22:30.510Z"
 }
